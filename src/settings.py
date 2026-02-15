@@ -46,3 +46,9 @@ BASE_STATS = {
     'int': 5,
     'vit': 10  # Higher VIT for testing so you don't die instantly
 }
+
+
+# We use these to tell the Spawner what is a "Room" and what is a "Tunnel"
+TILE_WALL = 0
+TILE_CAVERN = 1  # Safe for Monsters
+TILE_TUNNEL = 2  # No Monsters allowed

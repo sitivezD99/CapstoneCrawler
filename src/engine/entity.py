@@ -1,7 +1,7 @@
 # src/engine/entity.py
 import pygame
 from pygame.math import Vector2
-from engine.physics import move
+from engine.physics import move_and_slide  # <--- CHANGED: Import the new function
 from engine.stats import AttributeManager
 from settings import TILE_SIZE
 
@@ -12,15 +12,16 @@ class Entity:
         self.velocity = Vector2(0, 0)
         self.color = color
         
-        # RPG Stats (Every entity has stats)
+        # RPG Stats
         self.stats = AttributeManager()
         
         # State
         self.is_alive = True
 
     def apply_physics(self, walls):
-        """Shared physics logic"""
-        self.rect, _ = move(self.rect, self.velocity, walls)
+        """Shared physics logic using the new Corner Sliding system"""
+        # <--- CHANGED: Use move_and_slide instead of move
+        self.rect = move_and_slide(self.rect, self.velocity, walls)
 
     def draw(self, screen, camera):
         """Shared drawing logic"""

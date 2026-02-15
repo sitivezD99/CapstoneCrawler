@@ -1,12 +1,11 @@
 # src/main.py
 import pygame
 import sys
-import random
 from pygame.math import Vector2
 from settings import *
 from world.dungeon import DungeonManager
 from world.player import Player, STATE_ATTACKING
-from world.enemy import Enemy
+from world.spawner import Spawner
 from engine.camera import Camera
 from ui.hud import HUD
 from ui.debug import DebugInterface
@@ -15,7 +14,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Capstone Phase 3.5: Bug Fixes")
+        pygame.display.set_caption("Capstone Phase 4: Law of the Cavern")
         self.clock = pygame.time.Clock()
 
         self.dungeon = DungeonManager()
@@ -25,8 +24,11 @@ class Game:
         self.player = Player(spawn_x, spawn_y)
         
         self.enemies = [] 
-        self.spawn_timer = 0
-        self.spawn_enemy_near_player()
+        self.room_cooldowns = {} 
+        self.current_room_id = None
+        
+        # --- LAW OF THE TIMER ---
+        self.respawn_time = 10 * 60 * 1000 # 10 Minutes
 
         self.hud = HUD(self.player)
         self.debug = DebugInterface(self.player, self.dungeon, self.clock)
@@ -44,30 +46,21 @@ class Game:
                         return cx_tile * TILE_SIZE, cy_tile * TILE_SIZE
         return 0, 0 
 
-    def spawn_enemy_near_player(self):
-        for _ in range(10):
-            angle = random.uniform(0, 6.28)
-            dist = random.uniform(300, 600)
-            offset = Vector2(dist, 0).rotate_rad(angle)
-            spawn_pos = Vector2(self.player.rect.center) + offset
-            
-            gx = int(spawn_pos.x // TILE_SIZE)
-            gy = int(spawn_pos.y // TILE_SIZE)
-            cx = gx // CHUNK_SIZE
-            cy = gy // CHUNK_SIZE
-            chunk = self.dungeon.get_chunk(cx, cy)
-            
-            lx = gx % CHUNK_SIZE
-            ly = gy % CHUNK_SIZE
-            
-            if chunk.grid[ly][lx] == 1:
-                new_enemy = Enemy(spawn_pos.x, spawn_pos.y)
-                self.enemies.append(new_enemy)
-                return 
+    def get_player_room_id(self):
+        # Uses the Grid System to check "Potential" rooms
+        px_tile = self.player.rect.centerx // TILE_SIZE
+        py_tile = self.player.rect.centery // TILE_SIZE
+        gx = px_tile // ROOM_GRID_SIZE
+        gy = py_tile // ROOM_GRID_SIZE
+        gen = self.dungeon.generator
+        if gen.get_pseudo_random(gx, gy, "exist") < ROOM_CHANCE:
+            return (gx, gy)
+        return None
 
     def run(self):
         while True:
             dt = self.clock.tick(FPS) / 1000.0 
+            current_time = pygame.time.get_ticks()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -76,44 +69,62 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F3: self.debug.toggle()
 
-            # 1. Despawn Logic
-            self.enemies = [
-                e for e in self.enemies 
-                if e.is_alive and Vector2(e.rect.center).distance_to(self.player.rect.center) < 1500
-            ]
-            
-            # 2. Spawn Logic
-            if len(self.enemies) < 6:
-                self.spawn_timer += dt
-                if self.spawn_timer > 1.5: 
-                    self.spawn_enemy_near_player()
-                    self.spawn_timer = 0
+            self.enemies = [e for e in self.enemies if e.is_alive]
 
-            # 3. Update World
+            # --- SPAWN LOGIC ---
+            new_room_id = self.get_player_room_id()
+
+            # If we entered a potentially valid room grid...
+            if new_room_id is not None:
+                # Check 1: Is it the same room we are already fighting in?
+                if new_room_id != self.current_room_id:
+                    
+                    # Check 2: Is it on Cooldown?
+                    ready_time = self.room_cooldowns.get(new_room_id, 0)
+                    if current_time >= ready_time:
+                        
+                        # TRY TO SPAWN
+                        tile_x = int(self.player.rect.centerx // TILE_SIZE)
+                        tile_y = int(self.player.rect.centery // TILE_SIZE)
+                        
+                        new_wave = Spawner.spawn_wave(self.dungeon, tile_x, tile_y)
+                        
+                        if new_wave:
+                            # SUCCESS: We are in a real room (not a tunnel)
+                            print(f"New Room Entered {new_room_id}. Spawning Wave.")
+                            self.enemies.extend(new_wave)
+                            self.current_room_id = new_room_id
+                            
+                            # START 10 MINUTE TIMER
+                            self.room_cooldowns[new_room_id] = current_time + self.respawn_time
+                        else:
+                            # FAIL: We are in a tunnel connecting to the room.
+                            # Do NOT set ID, Do NOT set Cooldown.
+                            # Just wait until player walks further in.
+                            pass
+
+            # Update & Draw
             nearby_walls = self.dungeon.get_nearby_walls(self.player.rect)
             
             if self.player.state == STATE_ATTACKING:
-                # Capture the killed enemies list!
-                killed_enemies = self.player.update_attack(dt, nearby_walls, self.enemies)
-                if killed_enemies:
-                    for e in killed_enemies:
-                        self.player.stats.gain_xp(50) # Award 50 XP per kill
+                killed = self.player.update_attack(dt, nearby_walls, self.enemies)
+                if killed:
+                    for e in killed: self.player.stats.gain_xp(50) 
             else:
                 self.player.update(dt, nearby_walls)
 
             self.camera.update(self.player)
 
             for enemy in self.enemies:
-                enemy.update(dt, self.player, self.dungeon)
+                if Vector2(enemy.rect.center).distance_to(self.player.rect.center) > 2000:
+                    enemy.is_alive = False 
+                else:
+                    enemy.update(dt, self.player, self.dungeon, self.enemies)
 
-            # 4. Draw
             self.screen.fill((20, 15, 25))
             self.dungeon.draw_visible_chunks(self.screen, self.camera)
             self.player.draw(self.screen, self.camera)
-            
-            for enemy in self.enemies:
-                enemy.draw(self.screen, self.camera)
-            
+            for enemy in self.enemies: enemy.draw(self.screen, self.camera)
             self.hud.draw(self.screen)
             self.debug.draw(self.screen, len(self.enemies))
 
