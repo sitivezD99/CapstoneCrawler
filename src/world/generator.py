@@ -1,94 +1,79 @@
 # src/world/generator.py
-import opensimplex
-import random
+import numpy as np
+import noise 
 from settings import *
 
-class TerrainGenerator:
+class AtlasGenerator:
     def __init__(self, seed):
         self.seed = seed
-        self.noise_gen = opensimplex.OpenSimplex(seed)
 
-    def get_pseudo_random(self, x, y, salt=""):
-        random.seed(f"{self.seed}_{x}_{y}_{salt}")
-        return random.random()
-
-    def _get_raw_pixel(self, x, y):
-        """Calculates Base Truth (Used for Map Generation)"""
-        # LAYER A: ROOMS
-        if self.is_tile_in_room(x, y):
-            return 1
-        
-        # LAYER B: TUNNELS
-        raw_noise = self.noise_gen.noise2(x * TUNNEL_FREQ, y * TUNNEL_FREQ)
-        if abs(raw_noise) < TUNNEL_THICKNESS:
-            return 1 
-
-        return 0 
-
-    def is_tile_in_room(self, x, y):
+    def generate_chunk(self, cx, cy):
         """
-        [NEW] THE SOURCE OF TRUTH.
-        Returns True ONLY if (x,y) is mathematically inside a Round Room.
-        Used by the Spawner to enforce the 'Law of the Cavern'.
+        Generates a chunk using Global Integer Coordinates.
+        Seamless noise generation using constants from settings.py.
         """
-        cell_x = x // ROOM_GRID_SIZE
-        cell_y = y // ROOM_GRID_SIZE
+        # 1. Create Integer Ranges
+        local_x = np.arange(CHUNK_SIZE)
+        local_y = np.arange(CHUNK_SIZE)
         
-        # Check this cell and neighbors for overlapping room circles
-        for cy in range(cell_y - 1, cell_y + 2):
-            for cx in range(cell_x - 1, cell_x + 2):
-                has_room = self.get_pseudo_random(cx, cy, "exist") < ROOM_CHANCE
-                if not has_room: continue
-
-                # Deterministic Position & Size
-                jitter_x = int(self.get_pseudo_random(cx, cy, "jx") * (ROOM_GRID_SIZE - 2 * ROOM_MAX_RADIUS))
-                jitter_y = int(self.get_pseudo_random(cx, cy, "jy") * (ROOM_GRID_SIZE - 2 * ROOM_MAX_RADIUS))
-                
-                center_x = (cx * ROOM_GRID_SIZE) + ROOM_MAX_RADIUS + jitter_x
-                center_y = (cy * ROOM_GRID_SIZE) + ROOM_MAX_RADIUS + jitter_y
-                
-                radius = ROOM_MIN_RADIUS + (self.get_pseudo_random(cx, cy, "rad") * (ROOM_MAX_RADIUS - ROOM_MIN_RADIUS))
-
-                # Circle Check
-                dx = x - center_x
-                dy = y - center_y
-                if (dx*dx + dy*dy) <= (radius * radius):
-                    return True # STRICTLY inside a room
-        return False
-
-    def generate_chunk_data(self, chunk_x, chunk_y):
-        buffer_size = CHUNK_SIZE + 2
-        raw_grid = [[0] * buffer_size for _ in range(buffer_size)]
+        # 2. Convert to Global World Coordinates
+        global_x = (cx * CHUNK_SIZE) + local_x
+        global_y = (cy * CHUNK_SIZE) + local_y
         
-        start_x = (chunk_x * CHUNK_SIZE) - 1
-        start_y = (chunk_y * CHUNK_SIZE) - 1
+        # 3. Apply Scale
+        scaled_x = global_x * SCALE
+        scaled_y = global_y * SCALE
+        
+        # 4. Generate Noise Loop
+        chunk_data = np.zeros((CHUNK_SIZE, CHUNK_SIZE))
 
-        for y in range(buffer_size):
-            for x in range(buffer_size):
-                raw_grid[y][x] = self._get_raw_pixel(start_x + x, start_y + y)
+        for i, y_val in enumerate(scaled_y):
+            row_noise = [noise.snoise2(x_val, y_val, 
+                                       octaves=OCTAVES, 
+                                       persistence=PERSISTENCE, 
+                                       lacunarity=LACUNARITY, 
+                                       base=self.seed) for x_val in scaled_x]
+            chunk_data[i] = row_noise
+            
+        # 5. Apply Modifiers (Invert & Sharpen)
+        # MATCHES generate_map.py EXACTLY
+        height_map = chunk_data * -1.2
+        
+        # 6. Biome Classification (Using Settings Constants)
+        biome_map = np.full((CHUNK_SIZE, CHUNK_SIZE), BIOME_OCEAN, dtype=int)
+        
+        # Deep Ocean
+        biome_map[height_map < -0.05] = BIOME_DEEP_OCEAN
+        
+        # Land Layers
+        biome_map[height_map > BEACH_LEVEL] = BIOME_BEACH
+        biome_map[height_map > GRASS_LEVEL] = BIOME_GRASS
+        biome_map[height_map > FOREST_LEVEL] = BIOME_FOREST
+        
+        # Mountain Layers
+        biome_map[height_map > MTN_LOW_LEVEL] = BIOME_MTN_LOW
+        biome_map[height_map > MTN_MID_LEVEL] = BIOME_MTN_MID
+        biome_map[height_map > MTN_HIGH_LEVEL] = BIOME_MTN_HIGH
 
-        # Cellular Automata Smoothing
-        smooth_grid = [row[:] for row in raw_grid]
-        for _ in range(SMOOTHING_PASSES):
-            temp_grid = [row[:] for row in smooth_grid]
-            for y in range(1, buffer_size - 1):
-                for x in range(1, buffer_size - 1):
-                    wall_count = 0
-                    for dy in [-1, 0, 1]:
-                        for dx in [-1, 0, 1]:
-                            if dx == 0 and dy == 0: continue
-                            if smooth_grid[y+dy][x+dx] == 0:
-                                wall_count += 1
-                    
-                    if wall_count > 4: temp_grid[y][x] = 0
-                    elif wall_count < 4: temp_grid[y][x] = 1
-            smooth_grid = temp_grid
+        # 7. Transpose for Pygame (x, y)
+        return biome_map.T
 
-        final_grid = []
-        for y in range(1, CHUNK_SIZE + 1):
-            row = []
-            for x in range(1, CHUNK_SIZE + 1):
-                row.append(smooth_grid[y][x])
-            final_grid.append(row)
-
-        return final_grid
+    def find_spawn_point(self):
+        """Finds a safe spawn point on Grass."""
+        print("Scanning for Safe Spawn...")
+        # Check outward from 0,0 in 320 pixel steps (10 tiles)
+        for r in range(0, 5000, 10):
+            x_pixel = r * TILE_SIZE
+            y_pixel = 0
+            
+            x_noise = x_pixel * SCALE
+            y_noise = 0
+            
+            # Use EXACT same math
+            h = noise.snoise2(x_noise, y_noise, octaves=OCTAVES, base=self.seed) * -1.2
+            
+            # Spawn if valid grass
+            if h > GRASS_LEVEL and h < FOREST_LEVEL: 
+                return x_pixel, y_pixel
+                
+        return 0, 0
