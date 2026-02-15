@@ -1,27 +1,48 @@
+# src/settings.py
+
 # Screen & Rendering
 WIDTH = 1280
 HEIGHT = 720
 FPS = 60
 TILE_SIZE = 32
-CHUNK_SIZE = 32  # 16x16 tiles per chunk
-RENDER_DISTANCE = 6  # How many chunks away to draw
+CHUNK_SIZE = 32  # 32x32 tiles per chunk
+RENDER_DISTANCE = 4  # Reduced slightly to account for heavier math
 
 # Physics & Player
-PLAYER_SPEED = 0.5        # Acceleration
-PLAYER_FRICTION = 0.85    # Slippery-ness (0.9 = Ice, 0.5 = Mud)
+PLAYER_SPEED = 0.5
+PLAYER_FRICTION = 0.85
 PLAYER_MAX_SPEED = 6
 
-# ---------------- THE NOISE MATH ----------------
-# SEED: Change this to generate a completely new world
-SEED = 8141999 #14081999
+# ---------------- GENERATION DNA ----------------
+SEED = 2026
 
-# LAYER A: The "Big Caverns" (Open Spaces)
-# Low frequency = Massive features. High threshold = Rarer caves.
-CAVE_FREQ = 0.033333333333333333  
-CAVE_THRESHOLD = 0.33333333333333333333
+# STEP A: ROOM NODES (The Skeleton)
+# We divide the world into a coarse grid. Each cell might contain a room.
+ROOM_GRID_SIZE = 35      # Every 40x40 tiles, try to place a room
+ROOM_CHANCE = 0.65        # 70% chance a grid cell has a room
+ROOM_MIN_RADIUS = 6      # Smallest room (in tiles)
+ROOM_MAX_RADIUS = 18     # Largest room
 
-# LAYER B: The "Worm Tunnels" (Twisting Corridors)
-# Ridged Noise: We take the absolute value close to zero.
-# Higher frequency = Tighter, windier tunnels.
-TUNNEL_FREQ = 0.01
-TUNNEL_WIDTH = 0.04 # How thick the tunnels are
+# STEP B: WORM TUNNELS (The Connectors)
+# Ridged Noise settings
+TUNNEL_FREQ = 0.03       # Lower = Longer, straighter tunnels
+TUNNEL_THICKNESS = 0.14  # Threshold for the "Zero Crossing"
+
+# STEP C: EROSION (The Polish)
+# Cellular Automata settings
+SMOOTHING_PASSES = 2     # How many times to erode (1 is usually enough)
+WALL_THRESHOLD = 5       # If a tile has > 4 wall neighbors, it becomes a wall
+
+# ... (Previous settings) ...
+
+# RPG SETTINGS
+ATTACK_DURATION = 0.2    # How long the hit lasts (seconds)
+ATTACK_COOLDOWN = 0.4    # Time between hits (seconds)
+
+# STARTING STATS
+BASE_STATS = {
+    'str': 5,
+    'agi': 5,
+    'int': 5,
+    'vit': 10  # Higher VIT for testing so you don't die instantly
+}
