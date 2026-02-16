@@ -1,18 +1,21 @@
+# src/world/portal.py
 import pygame
 from settings import *
 
 class Portal:
-    def __init__(self, x, y):
+    def __init__(self, x, y, target_layer):
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
-        self.color = PORTAL_COLOR
+        self.target_layer = target_layer # 0 for Surface, -1 for Caves
         
-    def update(self, dt):
-        # We could add a particle effect here later!
-        pass
+        # Smart Linking: Where exactly does this door lead?
+        # If None, it hasn't been discovered/linked yet.
+        self.linked_pos = None 
+        
+        # Visuals
+        self.color = (0, 0, 0) if target_layer == -1 else (0, 255, 255) # Black=Down, Cyan=Up
 
     def draw(self, screen, camera):
         draw_rect = camera.apply(self.rect)
-        # Draw the black hole
         pygame.draw.rect(screen, self.color, draw_rect)
-        # Draw a small outline so it's visible against dark rock
-        pygame.draw.rect(screen, (100, 100, 100), draw_rect, 1)
+        # Simple outline
+        pygame.draw.rect(screen, (255, 255, 255), draw_rect, 1)
