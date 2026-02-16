@@ -1,7 +1,6 @@
 # src/main.py
 import pygame
 import sys
-import random
 from settings import *
 
 # --- IMPORT UNIVERSE MANAGER ---
@@ -25,7 +24,6 @@ class Game:
         self.camera = Camera(WIDTH, HEIGHT)
         
         # Spawn Player on Land
-        # We ask the surface generator specifically
         print("Searching for land...")
         spawn_x, spawn_y = self.world.surface_generator.find_spawn_point()
         self.player = Player(spawn_x, spawn_y)
@@ -49,7 +47,7 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F3: self.debug.toggle()
                     
-                    # DEBUG: Press 'G' to swap dimensions
+                    # DEBUG: Press 'G' to swap dimensions manually
                     if event.key == pygame.K_g:
                         self.world.toggle_layer()
 
@@ -64,12 +62,18 @@ class Game:
             # --- UPDATE ---
             nearby_walls = self.world.get_nearby_walls(self.player.rect)
             
+            # --- CRITICAL FIX: CHECK PORTALS ---
+            # This makes the black squares work!
+            self.world.check_portals(self.player)
+            
+            # Update Enemies
             for enemy in self.enemies:
                 if enemy.is_alive:
                     enemy.update(dt, self.player, self.world, self.enemies)
             
             self.enemies = [e for e in self.enemies if e.is_alive]
 
+            # Update Player
             if self.player.state == STATE_ATTACKING:
                 self.player.update_attack(dt, nearby_walls, self.enemies)
             else:

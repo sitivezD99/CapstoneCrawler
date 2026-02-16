@@ -82,3 +82,8 @@ CAVE_SCALE_CORRIDORS = 0.02   # Scale for the tunnel network
 CAVE_CORRIDOR_WIDTH = 0.18    # Thickness of corridors (High = Wider)
 CAVE_ROOM_THRESHOLD = 0.4     # How "open" the rooms are
 CAVE_WARP_STRENGTH = 15.0     # How jagged the walls are
+
+
+# --- PORTAL SETTINGS ---
+PORTAL_CHANCE = 1.00    # 5% chance a valid cliff gets a portal (Keeps them rare)
+PORTAL_COLOR = (0, 0, 0) # Pure Black Hole
