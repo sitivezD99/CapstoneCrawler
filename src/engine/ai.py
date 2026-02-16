@@ -10,7 +10,7 @@ class Pathfinder:
         start_node = (int(start_pos.x // TILE_SIZE), int(start_pos.y // TILE_SIZE))
         end_node = (int(end_pos.x // TILE_SIZE), int(end_pos.y // TILE_SIZE))
 
-        # Optimization: Straight line if far away
+        # Optimization: Straight line if far away to prevent lag
         if abs(start_node[0] - end_node[0]) + abs(start_node[1] - end_node[1]) > 50:
             return [end_pos]
 
@@ -18,8 +18,6 @@ class Pathfinder:
         heapq.heappush(open_set, (0, start_node))
         came_from = {}
         g_score = {start_node: 0}
-        
-        # Initial heuristic
         f_score = {start_node: abs(start_node[0]-end_node[0]) + abs(start_node[1]-end_node[1])}
 
         iterations = 0
@@ -38,19 +36,24 @@ class Pathfinder:
                 cx = neighbor[0] // CHUNK_SIZE
                 cy = neighbor[1] // CHUNK_SIZE
                 
-                # Retrieve the Chunk Object
-                chunk = world.chunks.get((cx, cy))
-                
+                # --- THE FIX IS HERE ---
+                # Old: chunk = world.chunks.get((cx, cy))
+                # New: Use get_chunk() to handle Surface vs. Cave automatically
+                try:
+                    chunk = world.get_chunk(cx, cy)
+                except:
+                    continue # Safety skip if generation fails
+
                 is_wall = False
                 if chunk:
                     lx = neighbor[0] % CHUNK_SIZE
                     ly = neighbor[1] % CHUNK_SIZE
                     # Access .grid inside the object
-                    # We check specifically for walking blockers
-                    if chunk.grid[lx][ly] in [0, 1, 5, 6, 7]: 
+                    # Check against Collision IDs 
+                    if chunk.grid[lx][ly] in [0, 1, 5, 6, 7, 100]: # Added 100 (Cave Wall)
                          is_wall = True
                 else:
-                    is_wall = True # Treat unloaded chunks as walls
+                    is_wall = True 
 
                 if is_wall: continue
 
