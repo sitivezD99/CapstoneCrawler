@@ -9,24 +9,16 @@ class Spawner:
     def spawn_enemies(world_manager, player):
         """
         Global Spawning System.
-        Determines context (Open World vs Dungeon) and spawns accordingly.
+        Automatically handles infinite world spawning.
         """
-        # --- CASE A: THE DUNGEON (Legacy System) ---
-        if hasattr(world_manager, 'rooms') or hasattr(world_manager, 'dungeon_generator'):
-            return Spawner._spawn_in_dungeon(world_manager, player)
-
-        # --- CASE B: THE ISLANDS (Open World System) ---
-        else:
-            return Spawner._spawn_on_island(world_manager, player)
+        return Spawner._spawn_on_island(world_manager, player)
 
     @staticmethod
     def _spawn_on_island(world, player):
         """
-        Option A: Randomly spawn enemies around the player in valid open terrain.
+        Randomly spawn enemies around the player in valid open terrain.
         """
         enemies = []
-        
-        # Try to spawn X enemies nearby
         target_count = 1  
         attempts = 10     
         
@@ -47,42 +39,26 @@ class Spawner:
             # 2. Check Validity (Must be land, not wall, not water)
             if Spawner._is_valid_spawn_spot(world, spawn_x, spawn_y):
                 enemies.append(Enemy(spawn_x, spawn_y))
-                print(f"🦀 Spawning Island Enemy at {int(spawn_x)}, {int(spawn_y)}")
+                # print(f"🦀 Spawning Enemy at {int(spawn_x)}, {int(spawn_y)}")
                 
         return enemies
 
     @staticmethod
     def _is_valid_spawn_spot(world, x, y):
-        # Convert to Tile/Chunk Coords
         chunk_x = int(x // (CHUNK_SIZE * TILE_SIZE))
         chunk_y = int(y // (CHUNK_SIZE * TILE_SIZE))
         
         chunk = world.get_chunk(chunk_x, chunk_y)
         
-        # Local tile coords
         local_x = int((x % (CHUNK_SIZE * TILE_SIZE)) // TILE_SIZE)
         local_y = int((y % (CHUNK_SIZE * TILE_SIZE)) // TILE_SIZE)
         
-        # Bounds Check
         if not (0 <= local_x < CHUNK_SIZE and 0 <= local_y < CHUNK_SIZE):
             return False
             
-        # FIX: Access .grid because chunk is now an object
         tile_id = chunk.grid[local_x][local_y] 
         
-        # CHECK: Is it a wall/water?
-        if tile_id in COLLISION_TILES:
-            return False
-            
-        # CHECK: Is it deep water? (Just in case collision list missed it)
-        if tile_id == BIOME_DEEP_OCEAN or tile_id == BIOME_OCEAN:
-            return False
+        if tile_id in COLLISION_TILES: return False
+        if tile_id == BIOME_DEEP_OCEAN or tile_id == BIOME_OCEAN: return False
             
         return True
-
-    @staticmethod
-    def _spawn_in_dungeon(dungeon, player):
-        """
-        Legacy logic for Dungeon Rooms.
-        """
-        return []
