@@ -40,16 +40,34 @@ class Game:
         while True:
             dt = self.clock.tick(FPS) / 1000.0 
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_F3: self.debug.toggle()
+            # --- THE CRASH SHIELD ---
+            # We catch the KeyError so the game doesn't close if the controller glitches
+            try:
+                # Get all events
+                events = pygame.event.get()
+                
+                for event in events:
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
                     
-                    # DEBUG: Press 'G' to swap dimensions manually
-                    if event.key == pygame.K_g:
-                        self.world.toggle_layer()
+                    # Handle Hot-Plugging safely
+                    if event.type in (pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
+                        if hasattr(self.player, 'input'):
+                            self.player.input.handle_hotplug(event)
+
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_F3: self.debug.toggle()
+                        
+                        # DEBUG: Press 'G' to swap dimensions manually
+                        if event.key == pygame.K_g:
+                            self.world.toggle_layer()
+
+            except KeyError:
+                # This catches the specific Xbox Controller crash (KeyError: 1)
+                # We just ignore the bad input frame and keep playing
+                pass 
+            # ------------------------
 
             # --- SPAWNER LOGIC ---
             self.spawn_timer -= dt

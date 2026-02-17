@@ -1,35 +1,18 @@
-# src/engine/physics.py
 import pygame
 
 def move_and_slide(rect, velocity, walls):
-    """
-    Moves a rect by velocity (dx, dy) handling collisions separately 
-    for X and Y axis to allow 'sliding' along walls.
-    """
-    # 1. Horizontal Movement
+    # 1. Horizontal
     rect.x += velocity.x
-    hit_list = []
-    for wall in walls:
-        if rect.colliderect(wall):
-            hit_list.append(wall)
-            
+    hit_list = [wall for wall in walls if rect.colliderect(wall)]
     for wall in hit_list:
-        if velocity.x > 0: # Moving Right
-            rect.right = wall.left
-        elif velocity.x < 0: # Moving Left
-            rect.left = wall.right
+        if velocity.x > 0: rect.right = wall.left
+        elif velocity.x < 0: rect.left = wall.right
     
-    # 2. Vertical Movement
+    # 2. Vertical
     rect.y += velocity.y
-    hit_list = []
-    for wall in walls:
-        if rect.colliderect(wall):
-            hit_list.append(wall)
-            
+    hit_list = [wall for wall in walls if rect.colliderect(wall)]
     for wall in hit_list:
-        if velocity.y > 0: # Moving Down
-            rect.bottom = wall.top
-        elif velocity.y < 0: # Moving Up
-            rect.top = wall.bottom
+        if velocity.y > 0: rect.bottom = wall.top
+        elif velocity.y < 0: rect.top = wall.bottom
             
     return rect
