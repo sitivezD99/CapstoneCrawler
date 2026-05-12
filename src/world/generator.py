@@ -1,62 +1,97 @@
 # src/world/generator.py
 import numpy as np
 import noise
+import random
 from settings import *
 
 class AtlasGenerator:
     def __init__(self, seed):
         self.seed = seed
-        
-        # --- FIXED: Use Settings.py constants! ---
         self.gen_scale = CONTINENT_SCALE   
         self.octaves = OCTAVES          
         self.persistence = PERSISTENCE    
         self.lacunarity = LACUNARITY     
 
     def generate_grid(self, start_x, start_y, width, height):
-        """
-        Generates a 2D biome grid using Tile Coordinates.
-        """
         local_x = np.arange(width, dtype=np.float32)
         local_y = np.arange(height, dtype=np.float32)
         
         global_y_vals = (start_y + local_y) * self.gen_scale
         global_x_vals = (start_x + local_x) * self.gen_scale
         
+        # Scale for the Blobs (Controls how big the biome patches are)
+        blob_y_vals = (start_y + local_y) * BLOB_SCALE
+        blob_x_vals = (start_x + local_x) * BLOB_SCALE
+        
         biome_grid = np.zeros((height, width), dtype=np.int32)
         
         land_start_threshold = LAND_THRESHOLD 
 
         for i, y_val in enumerate(global_y_vals):
+            # 1. ELEVATION NOISE (Continent Shape)
             row_noise = [noise.snoise2(x_val, y_val, 
                                        octaves=self.octaves, 
                                        persistence=self.persistence, 
                                        lacunarity=self.lacunarity, 
                                        base=self.seed) for x_val in global_x_vals]
             
-            row_noise = np.array(row_noise, dtype=np.float32)
+            # 2. BLOB NOISE (Biome Variations)
+            blob_y = blob_y_vals[i]
+            row_blob = [noise.snoise2(bx, blob_y, 
+                                      octaves=2, 
+                                      persistence=0.5, 
+                                      base=self.seed + 500) for bx in blob_x_vals]
+            
+            height_map = np.array(row_noise, dtype=np.float32)
+            blob_map = np.array(row_blob, dtype=np.float32)
 
-            # --- CUBIC TRANSFORM ---
-            # This makes mountains steeper and plains flatter
-            height_map = row_noise * row_noise * row_noise
+            # Cubic Transform (Your original continent math)
+            height_map = height_map * height_map * height_map
             height_map *= 4.0
             
             # --- BIOME CLASSIFICATION ---
             row_biomes = np.full(width, BIOME_OCEAN, dtype=np.int32)
             
+            # Water
             row_biomes[height_map < 0.00] = BIOME_DEEP_OCEAN
             row_biomes[height_map > 0.08] = BIOME_SHALLOW_WATER
             
-            row_biomes[height_map > land_start_threshold] = BIOME_BEACH
-            row_biomes[height_map > (land_start_threshold + 0.02)] = BIOME_GRASS
+            # Land Masks
+            is_land = height_map > land_start_threshold
             
-            # Forest Threshold
-            row_biomes[height_map > 0.35] = BIOME_FOREST
+            # --- ZONING LOGIC ---
+            # Zone 1: Lowlands (Between Beach and Highlands)
+            is_low_zone = (height_map > (land_start_threshold + 0.02)) & (height_map <= HIGHLAND_THRESHOLD)
             
-            # Mountain Thresholds
+            # Zone 2: Highlands (Between Lowlands and Mountains)
+            is_high_zone = (height_map > HIGHLAND_THRESHOLD) & (height_map <= 0.8)
+            
+            # Apply Beach
+            row_biomes[is_land] = BIOME_BEACH
+            
+            # --- BLOB LOGIC: ZONE 1 (LOWLANDS) ---
+            # Default
+            row_biomes[is_low_zone] = BIOME_L_MEADOW
+            # Blob A (Scrub)
+            row_biomes[is_low_zone & (blob_map < -0.2)] = BIOME_L_SCRUB
+            # Blob B (Marsh)
+            row_biomes[is_low_zone & (blob_map > 0.2)] = BIOME_L_MARSH
+            
+            # --- BLOB LOGIC: ZONE 2 (HIGHLANDS) ---
+            # Default
+            row_biomes[is_high_zone] = BIOME_H_FOREST
+            # Blob A (Autumn)
+            row_biomes[is_high_zone & (blob_map < -0.2)] = BIOME_H_AUTUMN
+            # Blob B (Birch)
+            row_biomes[is_high_zone & (blob_map > 0.2)] = BIOME_H_BIRCH
+            
+            # --- MOUNTAINS ---
             row_biomes[height_map > 0.8] = BIOME_MTN_LOW
-            row_biomes[height_map > 1.0] = BIOME_MTN_MID
-            row_biomes[height_map > 1.3] = BIOME_MTN_HIGH
+            row_biomes[height_map > 1.0] = BIOME_MTN_HIGH
+            row_biomes[height_map > 1.3] = BIOME_MTN_PEAK
+            
+            # NOTE: No Object Generation Loop Here!
+            # The code ends here, ensuring plain vanilla tiles.
             
             biome_grid[i] = row_biomes
 

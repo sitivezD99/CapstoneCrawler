@@ -33,8 +33,8 @@ except ImportError:
 # --- CONFIGURATION (IN TILES) ---
 # We want the map to represent Tiles, where 1 Pixel on the image = 1 Tile in the game.
 # 4000 Tiles = 64,000 Game Pixels wide.
-MAP_WIDTH_TILES = 30000 
-MAP_HEIGHT_TILES = 30000
+MAP_WIDTH_TILES = 3000
+MAP_HEIGHT_TILES = 3000
 IMAGE_TILE_SIZE = 1000 # Process 1000x1000 chunks at a time
 
 def generate_tile_task(args):
