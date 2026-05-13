@@ -4,15 +4,58 @@ import pygame
 # --- SCREEN & RENDERING ---
 WIDTH = 1280
 HEIGHT = 720
+DISPLAY_WIDTH = 960  # From Sandbox
+DISPLAY_HEIGHT = 540 # From Sandbox
 FPS = 60
-TILE_SIZE = 16      # 16px Tiles (Vast World)
-CHUNK_SIZE = 32     # 32x32 Chunks
+TILE_SIZE = 32       # Tuned for Sandbox combat
+CHUNK_SIZE = 32      # 32x32 Chunks
 RENDER_DISTANCE = 5
 
 # --- PHYSICS ---
 PLAYER_SPEED = 0.5
-PLAYER_FRICTION = 0.85
-PLAYER_MAX_SPEED = 6
+PLAYER_FRICTION = 0.85   # Preserved from Main
+PLAYER_MAX_SPEED = 4.5   # Tuned for Sandbox
+
+# --- PLAYER STATES ---
+STATE_IDLE = "IDLE"
+STATE_MOVING = "MOVING"
+STATE_ATTACKING = "ATTACKING"
+STATE_SKILL_1 = "SKILL_1"  
+STATE_SKILL_2 = "SKILL_2"  
+STATE_SKILL_3 = "SKILL_3"  
+STATE_DASHING = "DASHING"
+STATE_COOLDOWN = "COOLDOWN"
+
+# --- ENEMY STATES ---
+ENEMY_CHASING = "CHASING"
+ENEMY_WINDUP = "WINDUP"
+ENEMY_RECOVERING = "RECOVERING"
+ENEMY_STUNNED = "STUNNED"
+ENEMY_STAGGERED = "STAGGERED" 
+
+# --- COMBAT & STATS ---
+ATTACK_DURATION = 0.2
+ATTACK_COOLDOWN = 0.4
+BASE_STATS = {'str': 5, 'agi': 5, 'int': 5, 'vit': 10}
+
+# --- HEX CORE & UI SETTINGS ---
+HEX_RADIUS = 35 
+HEX_MENU_COLOR = (15, 15, 20, 240)
+COLOR_MAIN_HEX = (30, 30, 35)       
+COLOR_LOCKED = (40, 40, 40)      
+COLOR_HITBOX = (255, 0, 0, 100)  
+
+# --- RARITY COLORS ---
+COLOR_COMMON = (200, 200, 200)   
+COLOR_RARE = (0, 150, 255)       
+COLOR_EPIC = (180, 0, 255)       
+COLOR_MYTHIC = (255, 50, 50)     
+COLOR_LEGENDARY = (255, 215, 0)  
+
+# --- DATABASE SETTINGS ---
+DB_CSV_PATH = "game_objects.csv"
+STATS_CSV_PATH = "player_progression.csv"
+CONST_CSV_PATH = "constellations.csv" 
 
 # --- GENERATION SETTINGS ---
 SEED = 2026
@@ -59,7 +102,7 @@ BIOME_CAVE_CORRIDOR = 202
 BIOME_COLORS = {
     # Water
     BIOME_DEEP_OCEAN:    (5, 5, 30),       
-    BIOME_OCEAN:         (20, 40, 90),    
+    BIOME_OCEAN:         (20, 40, 90),     
     BIOME_SHALLOW_WATER: (60, 160, 200),
     BIOME_BEACH:         (240, 240, 100),  
     
@@ -93,11 +136,6 @@ COLLISION_TILES = {
     BIOME_CAVE_WALL
 }
 
-# --- COMBAT ---
-ATTACK_DURATION = 0.2
-ATTACK_COOLDOWN = 0.4
-BASE_STATS = {'str': 5, 'agi': 5, 'int': 5, 'vit': 10}
-
 # --- CAVE CONFIG ---
 CAVE_SCALE_ROOMS = 0.015      
 CAVE_SCALE_CORRIDORS = 0.02   
@@ -106,5 +144,5 @@ CAVE_ROOM_THRESHOLD = 0.4
 CAVE_WARP_STRENGTH = 15.0     
 
 # --- PORTAL ---
-PORTAL_CHANCE = 1.00    
+PORTAL_CHANCE = 0.10    
 PORTAL_COLOR = (0, 0, 0)

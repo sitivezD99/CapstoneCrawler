@@ -218,52 +218,6 @@ class UniverseManager:
                             pygame.draw.rect(screen, BIOME_COLORS.get(tile, (255,0,255)), rect)
         for p in self.active_portals: p.draw(screen, camera)
             
-    def _find_closest_safe_tile(self, px, py, target_layer):
-        # Convert pixel position to tile grid coordinates
-        start_tx = int(px // TILE_SIZE)
-        start_ty = int(py // TILE_SIZE)
-        
-        # Define what a "safe" surface tile is (No Mountains, No Water)
-        VALID_SURFACE = [
-            BIOME_L_MEADOW, BIOME_L_SCRUB, BIOME_L_MARSH,
-            BIOME_H_FOREST, BIOME_H_AUTUMN, BIOME_H_BIRCH,
-            BIOME_BEACH
-        ]
-        
-        # Spiral outward up to 50 tiles (~1600 pixels) to find the closest safe ground
-        max_radius = 50 
-        
-        for r in range(0, max_radius):
-            for dx in range(-r, r + 1):
-                for dy in range(-r, r + 1):
-                    # Only check the outer perimeter of the current radius ring
-                    if max(abs(dx), abs(dy)) != r: continue
-                    
-                    tx, ty = start_tx + dx, start_ty + dy
-                    cx, cy = tx // CHUNK_SIZE, ty // CHUNK_SIZE
-                    lx, ly = tx % CHUNK_SIZE, ty % CHUNK_SIZE
-                    
-                    chunk = self.get_chunk(cx, cy)
-                    tile = chunk.grid[lx][ly]
-                    
-                    if target_layer == -1: # Searching for a Cave Floor
-                        if tile in [BIOME_CAVE_ROOM, BIOME_CAVE_CORRIDOR]:
-                            return (tx * TILE_SIZE + TILE_SIZE//2), (ty * TILE_SIZE + TILE_SIZE//2)
-                    else: # Searching for safe Surface Land
-                        if tile in VALID_SURFACE:
-                            return (tx * TILE_SIZE + TILE_SIZE//2), (ty * TILE_SIZE + TILE_SIZE//2)
-                            
-        return px, py # Failsafe (should never hit this unless the map is completely broken)
-
-    def toggle_layer(self, player):
-        # 1. Flip the layer
-        self.current_layer = -1 if self.current_layer == 0 else 0
-        
-        # 2. Find the closest absolute safe spot
-        safe_x, safe_y = self._find_closest_safe_tile(player.rect.centerx, player.rect.centery, self.current_layer)
-        
-        # 3. Teleport the player safely and kill their momentum
-        player.rect.centerx = safe_x
-        player.rect.centery = safe_y
-        player.velocity = pygame.math.Vector2(0, 0)
-        print(f"✨ G-Warped safely to {safe_x}, {safe_y}")
+    def toggle_layer(self):
+        if self.current_layer == 0: self.current_layer = -1
+        else: self.current_layer = 0

@@ -1,0 +1,60 @@
+ID,Name,Category,Rarity,Effect_Stat,Effect_Value,Max_Stack,Is_Consumable,Damage_Type,Icon,Equip_Slot
+gl_force_1,Force,Glyph,Rare,Force,0.05,99,False,N/A,🗡️,None
+gl_force_2,Force,Glyph,Epic,Force,0.1,99,False,N/A,🗡️,None
+gl_force_3,Force,Glyph,Mythic,Force,0.15,99,False,N/A,🗡️,None
+gl_force_4,Force,Glyph,Legendary,Force,0.2,99,False,N/A,🗡️,None
+gl_reach_1,Reach,Glyph,Rare,Reach,0.08,99,False,N/A,➕,None
+gl_reach_2,Reach,Glyph,Epic,Reach,0.15,99,False,N/A,➕,None
+gl_reach_3,Reach,Glyph,Mythic,Reach,0.22,99,False,N/A,➕,None
+gl_reach_4,Reach,Glyph,Legendary,Reach,0.3,99,False,N/A,➕,None
+gl_impact_1,Impact,Glyph,Rare,Impact,0.1,99,False,N/A,💥,None
+gl_impact_2,Impact,Glyph,Epic,Impact,0.15,99,False,N/A,💥,None
+gl_impact_3,Impact,Glyph,Mythic,Impact,0.22,99,False,N/A,💥,None
+gl_impact_4,Impact,Glyph,Legendary,Impact,0.3,99,False,N/A,💥,None
+gl_haste_1,Haste,Glyph,Rare,Haste,0.05,99,False,N/A,💨,None
+gl_haste_2,Haste,Glyph,Epic,Haste,0.1,99,False,N/A,💨,None
+gl_haste_3,Haste,Glyph,Mythic,Haste,0.15,99,False,N/A,💨,None
+gl_haste_4,Haste,Glyph,Legendary,Haste,0.2,99,False,N/A,💨,None
+gl_vamp_3,Vampire,Glyph,Mythic,Vampire,0.05,99,False,N/A,❤️,None
+gl_vamp_4,Vampire,Glyph,Legendary,Vampire,0.07,99,False,N/A,❤️,None
+mat_stone,Stone,Material,Common,Crafting,Basic material,100,False,N/A,🪨,None
+mat_magic_crystal,Magic Crystal,Material,Epic,Crafting,Unlocks Stars,999,False,N/A,💎,None
+pot_hp_1,Minor Life Potion,Potion,Common,Health,50.0,99,True,N/A,🧪,None
+pot_hp_2,Life Potion,Potion,Rare,Health,150.0,99,True,N/A,🧪,None
+pot_hp_3,Greater Life Potion,Potion,Epic,Health,300.0,99,True,N/A,🧪,None
+pot_hp_4,Perfect Life Potion,Potion,Mythic,Health,1000.0,99,True,N/A,🧪,None
+eq_sword_0,Iron Sword,Weapon,Common,Base_Damage,10,99,False,N/A,🗡️,MainHand
+eq_shield_0,Iron Shield,Armor,Common,Defense,10,99,False,N/A,🛡️,OffHand
+eq_chestplate_0,Iron Chestplate,Armor,Common,Defense,15,99,False,N/A,👕,Chest
+eq_leggings_0,Iron Leggings,Armor,Common,Defense,8,99,False,N/A,👖,Legs
+eq_boots_0,Iron Boots,Armor,Common,Defense,5,99,False,N/A,🥾,Feet
+eq_ring_0,Iron Ring,Accessory,Common,Strength,2,99,False,N/A,💍,Ring
+eq_amulet_0,Iron Amulet,Accessory,Common,Vigor,2,99,False,N/A,📿,Necklace
+eq_sword_1,Steel Sword,Weapon,Rare,Base_Damage,20,99,False,N/A,🗡️,MainHand
+eq_shield_1,Steel Shield,Armor,Rare,Defense,20,99,False,N/A,🛡️,OffHand
+eq_chestplate_1,Steel Chestplate,Armor,Rare,Defense,30,99,False,N/A,👕,Chest
+eq_leggings_1,Steel Leggings,Armor,Rare,Defense,16,99,False,N/A,👖,Legs
+eq_boots_1,Steel Boots,Armor,Rare,Defense,10,99,False,N/A,🥾,Feet
+eq_ring_1,Steel Ring,Accessory,Rare,Strength,4,99,False,N/A,💍,Ring
+eq_amulet_1,Steel Amulet,Accessory,Rare,Vigor,4,99,False,N/A,📿,Necklace
+eq_sword_2,Mithril Sword,Weapon,Epic,Base_Damage,40,99,False,N/A,🗡️,MainHand
+eq_shield_2,Mithril Shield,Armor,Epic,Defense,40,99,False,N/A,🛡️,OffHand
+eq_chestplate_2,Mithril Chestplate,Armor,Epic,Defense,60,99,False,N/A,👕,Chest
+eq_leggings_2,Mithril Leggings,Armor,Epic,Defense,32,99,False,N/A,👖,Legs
+eq_boots_2,Mithril Boots,Armor,Epic,Defense,20,99,False,N/A,🥾,Feet
+eq_ring_2,Mithril Ring,Accessory,Epic,Strength,8,99,False,N/A,💍,Ring
+eq_amulet_2,Mithril Amulet,Accessory,Epic,Vigor,8,99,False,N/A,📿,Necklace
+eq_sword_3,Void Sword,Weapon,Mythic,Base_Damage,80,99,False,N/A,🗡️,MainHand
+eq_shield_3,Void Shield,Armor,Mythic,Defense,80,99,False,N/A,🛡️,OffHand
+eq_chestplate_3,Void Chestplate,Armor,Mythic,Defense,120,99,False,N/A,👕,Chest
+eq_leggings_3,Void Leggings,Armor,Mythic,Defense,64,99,False,N/A,👖,Legs
+eq_boots_3,Void Boots,Armor,Mythic,Defense,40,99,False,N/A,🥾,Feet
+eq_ring_3,Void Ring,Accessory,Mythic,Strength,16,99,False,N/A,💍,Ring
+eq_amulet_3,Void Amulet,Accessory,Mythic,Vigor,16,99,False,N/A,📿,Necklace
+eq_sword_4,Celestial Sword,Weapon,Legendary,Base_Damage,150,99,False,N/A,🗡️,MainHand
+eq_shield_4,Celestial Shield,Armor,Legendary,Defense,150,99,False,N/A,🛡️,OffHand
+eq_chestplate_4,Celestial Chestplate,Armor,Legendary,Defense,225,99,False,N/A,👕,Chest
+eq_leggings_4,Celestial Leggings,Armor,Legendary,Defense,120,99,False,N/A,👖,Legs
+eq_boots_4,Celestial Boots,Armor,Legendary,Defense,75,99,False,N/A,🥾,Feet
+eq_ring_4,Celestial Ring,Accessory,Legendary,Strength,30,99,False,N/A,💍,Ring
+eq_amulet_4,Celestial Amulet,Accessory,Legendary,Vigor,30,99,False,N/A,📿,Necklace

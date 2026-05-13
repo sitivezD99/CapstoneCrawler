@@ -1,0 +1,14 @@
+ID,Name,X,Y,Tier,Cost,Stat_Type,Stat_Value,Reqs,Description
+core_awake,The Awakening,0.0,0.0,Major,1,Max_HP,20.0,,The spark of power.
+col_1,Bear's Blood,-150.0,-100.0,Minor,1,Vigor,2.0,core_awake,Increases base vitality.
+col_2,Iron Hide,-300.0,-50.0,Minor,1,Vigor,2.0,col_1,Thickens the skin.
+col_3,Titan's Core,-450.0,-150.0,Major,3,Max_HP,50.0,col_2,Massive health increase.
+col_key,Keystone: Juggernaut,-650.0,-100.0,Keystone,5,Impact,0.5,col_3,Your Knockback pushes enemies 50% further.
+exe_1,Raven's Eye,150.0,-100.0,Minor,1,Strength,2.0,core_awake,Increases base muscle.
+exe_2,Sharpened Blade,300.0,-50.0,Minor,1,Strength,2.0,exe_1,Hones combat power.
+exe_3,Lethal Strike,450.0,-150.0,Major,3,Base_Damage,15.0,exe_2,Massive damage increase.
+exe_key,Keystone: Bloodthirst,650.0,-100.0,Keystone,5,Vampire,0.05,exe_3,Adds +5% global Lifesteal to all attacks.
+ber_1,Wolf's Pace,0.0,150.0,Minor,1,Haste,0.05,core_awake,Increases combat speed.
+ber_2,Feral Lunge,-100.0,250.0,Minor,1,Reach,0.1,ber_1,Increases attack area size.
+ber_3,Thrill of Hunt,100.0,350.0,Major,3,Haste,0.15,ber_2,Massive speed increase.
+ber_key,Keystone: Frenzy,0.0,500.0,Keystone,5,Haste,0.2,ber_3,Attack at blinding speeds.
