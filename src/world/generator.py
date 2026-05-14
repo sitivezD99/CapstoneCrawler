@@ -19,10 +19,6 @@ class AtlasGenerator:
         global_y_vals = (start_y + local_y) * self.gen_scale
         global_x_vals = (start_x + local_x) * self.gen_scale
         
-        # Scale for the Blobs (Controls how big the biome patches are)
-        blob_y_vals = (start_y + local_y) * BLOB_SCALE
-        blob_x_vals = (start_x + local_x) * BLOB_SCALE
-        
         biome_grid = np.zeros((height, width), dtype=np.int32)
         
         land_start_threshold = LAND_THRESHOLD 
@@ -35,15 +31,7 @@ class AtlasGenerator:
                                        lacunarity=self.lacunarity, 
                                        base=self.seed) for x_val in global_x_vals]
             
-            # 2. BLOB NOISE (Biome Variations)
-            blob_y = blob_y_vals[i]
-            row_blob = [noise.snoise2(bx, blob_y, 
-                                      octaves=2, 
-                                      persistence=0.5, 
-                                      base=self.seed + 500) for bx in blob_x_vals]
-            
             height_map = np.array(row_noise, dtype=np.float32)
-            blob_map = np.array(row_blob, dtype=np.float32)
 
             # Cubic Transform (Your original continent math)
             height_map = height_map * height_map * height_map
@@ -69,21 +57,11 @@ class AtlasGenerator:
             # Apply Beach
             row_biomes[is_land] = BIOME_BEACH
             
-            # --- BLOB LOGIC: ZONE 1 (LOWLANDS) ---
-            # Default
+            # Apply Standard Lowlands (Meadow)
             row_biomes[is_low_zone] = BIOME_L_MEADOW
-            # Blob A (Scrub)
-            row_biomes[is_low_zone & (blob_map < -0.2)] = BIOME_L_SCRUB
-            # Blob B (Marsh)
-            row_biomes[is_low_zone & (blob_map > 0.2)] = BIOME_L_MARSH
             
-            # --- BLOB LOGIC: ZONE 2 (HIGHLANDS) ---
-            # Default
+            # Apply Standard Highlands (Forest)
             row_biomes[is_high_zone] = BIOME_H_FOREST
-            # Blob A (Autumn)
-            row_biomes[is_high_zone & (blob_map < -0.2)] = BIOME_H_AUTUMN
-            # Blob B (Birch)
-            row_biomes[is_high_zone & (blob_map > 0.2)] = BIOME_H_BIRCH
             
             # --- MOUNTAINS ---
             row_biomes[height_map > 0.8] = BIOME_MTN_LOW
